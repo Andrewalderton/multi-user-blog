@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+    {% for post in posts %}
+        <h2 class="featured-section">{{ post.render(title) }}</h2>
+        <p>{{ post.body }}</p>
+    {% else %}
+        <h2>Sorry, there is no content to view at the moment.</h2>
+    {% endfor %}
+    </div>
+</div>
+{% endblock %}

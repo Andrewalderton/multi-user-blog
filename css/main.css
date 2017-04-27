@@ -1,0 +1,207 @@
+/* General Styles */
+body {
+	min-height: 1000px;
+    padding: 100px 0;
+    font: normal 200 1.5em/1.5em "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	color: #414141;
+	background-color: #fff;
+	position: relative;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font: bold 1em/1.5em "Helvetica Neue", Helvetica, Arial, sans-serif;
+	display: inline-block;
+	margin: 1em 0 0;
+}
+
+h1 {
+	letter-spacing: -0.05em;
+	margin: 10px;
+}
+
+h2 {
+	letter-spacing: -0.02em;
+	font-weight: 500;
+	margin: 0 0 0.5em 0;
+}
+
+h3 {
+	font-size: 1.25em;
+}
+
+a {
+	font: bold 1em/1.5em "Helvetica Neue", Helvetica, Arial, sans-serif;
+	color: #2bb5cf;
+	text-decoration: none;
+}
+
+a:hover,
+a:focus {
+	color: #656a71;
+	text-decoration: none;
+}
+
+p {
+	font-size: 1em;
+	padding-top: 1em;
+}
+
+
+/* Navbar Styling */
+.navbar {
+	height: 81px;
+	border-bottom: 1px solid #2bb5cf;
+}
+
+.logo {
+	margin: 5px 0 0 -5px;
+	padding: 0;
+	float: left;
+	border: none;
+}
+
+.navbar-header {
+	max-width: 400px;
+}
+
+.navbar-brand {
+	display: inline-block;
+	margin: auto;
+	padding: 15px 0 0 15px;
+	max-width: 180px;
+	height: 30px;
+	font-size: 1.4em;
+}
+
+.navbar-sub-brand {
+	float: left;
+	display: inline-block;
+	margin: 0;
+	padding: 0;
+	font-size: 0.75em;
+	color: #2f6e8e;
+}
+
+.collapse {
+	background-color: #f8f8f8;
+}
+
+.navbar-right {
+	margin: 15px auto;
+}
+
+
+/* Images */
+img {
+	max-width: 100%;
+	border-bottom: 2px solid #2bb5cf;
+}
+
+.main-img {
+	margin: auto;
+	position: relative;
+	overflow: hidden;
+    max-height: 525px;
+    width: 1200px;
+    object-fit: cover;
+    border-bottom: 2px solid #2bb5cf;
+}
+
+
+/* Portfolio */
+.featured-section {
+	margin: 1em 0;
+	padding: 1em 0;
+	font-size: 1.5em;
+	font-weight: bold;
+}
+
+.featured-heading {
+	max-width: 100%;
+	margin: auto;
+	text-align: center;
+}
+
+@media screen and (max-width: 991px) {
+	.featured-heading:nth-child(3) {
+		clear: left;
+	}
+	.featured-heading:nth-child(5) {
+		clear: left;
+	}
+}
+
+.featured-text {
+	color: #777;
+	padding: 0 0 1em;
+}
+
+
+/* Fixed Footer */
+footer {
+	text-align: center;
+	position: absolute;
+    right: 0;
+    bottom: 0;
+	left: 0;
+	padding: 1em;
+	background-color: #f8f8f8;
+}
+
+
+/* Footer Icons */
+.social-icon {
+	width: 20px;
+	height: 20px;
+	margin: 0 5px;
+	border: 0;
+}
+
+
+/* About Page */
+.profile-photo {
+	display: inline-block;
+	float: left;
+	max-width: 150px;
+	margin: 3em auto;
+	border-radius: 100%;
+	border: 2px solid #2bb5cf;
+}
+
+
+/* Contact Page */
+.contact-info {
+	list-style: none;
+	padding: 1em 0 0;
+	margin: 0;
+}
+
+.contact-info {
+	display: block;
+	min-height: 20px;
+	background-repeat: no-repeat;
+	background-size: 20px 20px;
+	margin: 10px 0 0;
+	padding: 0 0 0 30px;
+}
+
+.mail {
+	background-image: url("https://andrewalderton.github.io/nanodegree-portfolio/img/mail.png");
+}
+
+.twitter {
+	background-image: url("https://andrewalderton.github.io/nanodegree-portfolio/img/twitter.png");
+}
+
+.facebook {
+	background-image: url("https://andrewalderton.github.io/nanodegree-portfolio/img/facebook.png");
+}
+
+
+
+

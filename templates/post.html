@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="featured-section">{{ post.title }}</h2>
+        <div class="post-date">
+            {{ post.created.strftime("%b %d, %Y") }}
+        </div>
+        <div class=post-content>
+            {{ post.body }}
+        </div>
+    </div>
+</div>
+{% endblock %}
