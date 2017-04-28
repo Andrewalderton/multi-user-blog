@@ -96,6 +96,10 @@ p {
 }
 
 
+.error {
+	color: red;
+}
+
 /* Images */
 img {
 	max-width: 100%;
