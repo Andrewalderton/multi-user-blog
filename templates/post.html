@@ -5,10 +5,10 @@
     <div class="col-md-12">
         <h2 class="featured-section">{{ post.title }}</h2>
         <div class="post-date">
-            {{ post.created.strftime("%b %d, %Y") }}
+            {{ post.created }}
         </div>
         <div class=post-content>
-            {{ post.body }}
+            {{ post._render_text | safe }}
         </div>
     </div>
 </div>

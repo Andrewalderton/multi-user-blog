@@ -7,8 +7,8 @@
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
         <!-- Place favicon.ico in the root directory -->
 
-        <link rel="stylesheet" href="/css/bootstrap.min.css">
-        <link rel="stylesheet" href="/css/main.css">
+        <link rel="stylesheet" href="/static/bootstrap.min.css">
+        <link rel="stylesheet" href="/static/main.css">
     </head>
     <body>
         <div class="container">
@@ -29,9 +29,9 @@
                     </div>
                     <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav navbar-right">
-                        {% if logged_in %}
-                        <li><a href="{{ '/new-post' }}">Login</a></li>
-                        <li><a href="{{ '/logout' }}">Login</a></li>
+                        {% if user %}
+                        <li><a href="{{ '/new-post' }}">New Post</a></li>
+                        <li><a href="{{ '/log-out' }}">Logout</a></li>
                         {% else %}
                         <li><a href="{{ '/login' }}">Login</a></li>
                         <li><a href="{{ '/sign-up'}}">Sign Up</a></li>

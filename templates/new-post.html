@@ -7,11 +7,13 @@
         <form method="POST">
             <div class="form-group">
                 <label for="title">Title</label>
-                <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Title">
+                <input type="text" class="form-control" name="title" value="{{title}}" placeholder="Title">
+                <div class="error">{{error}}</div>
             </div>
             <div class="form-group">
-                <label for="text">Content</label>
-                <textarea rows="15" cols="50" class="form-control" placeholder="Enter your text here."></textarea>
+                <label for="body">Content</label>
+                <textarea rows="15" cols="50" class="form-control" name="body" value="{{body}}" placeholder="Enter your text here."></textarea>
+                <div class="error">{{error}}</div>
             </div>
             <button class="btn btn-primary" type="submit">Submit</button>
         </form>
