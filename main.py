@@ -205,6 +205,7 @@ class Post(db.Model):
     body = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
     last_modified = db.DateTimeProperty(auto_now=True)
+    author = db.StringProperty()
 
     def render(self, current_user_id):
         self._render_text = self.body.replace('\n', '<br>')
@@ -218,9 +219,13 @@ class NewPost(Handler):
     def post(self):
         title = self.request.get("title")
         body = self.request.get("body")
+        cookie = self.request.cookies.get("user_id")
+        val = check_secure_val(cookie)
+        u = User.by_id(int(val))
+        author = str(u.name)
 
         if title and body:
-            post = Post(parent=blog_key(), title=title, body=body)
+            post = Post(parent=blog_key(), title=title, body=body, author=author)
             post.put()
             self.redirect('/%s' % str(post.key().id()))
         else:
@@ -270,6 +275,43 @@ class LogOut(Handler):
         self.redirect('/')
 
 
+class EditPost(Handler):
+    def get(self, post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+
+        cookie = self.request.cookies.get("user_id")
+        val = check_secure_val(cookie)
+        u = User.by_id(int(val))
+
+        if post.author == u.name:
+            self.render('edit-post.html', title=post.title,
+                        body=post.body, author=post.author)
+
+        elif not self.user:
+            self.redirect('/login')
+        else:
+            error = "You can\'t edit other users\' posts!"
+            self.render("permalink.html", error=error)
+
+    def post(self, post_id):
+        title = self.request.get("title")
+        body = self.request.get("body")
+
+        if title and body:
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
+
+            post.title = title
+            post.body = body
+            post.put()
+            self.redirect('/%s' % str(post.key().id()))
+        else:
+            error = "Title and Content both required to update."
+            self.render("edit-post.html", title=title,
+                        body=body, error=error)
+
+
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/login', LoginPage),
@@ -277,5 +319,6 @@ app = webapp2.WSGIApplication([
     ('/sign-up', SignUp),
     ('/welcome', Welcome),
     ('/new-post', NewPost),
-    ('/([0-9]+)', PostPage)
+    ('/([0-9]+)', PostPage),
+    ('/edit-post/([0-9]+)', EditPost),
 ], debug=True)

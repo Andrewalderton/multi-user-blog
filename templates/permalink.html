@@ -2,4 +2,7 @@
 
 {% block content %}
     {{post.render(user.key().id()) | safe}}
+    <br>
+    <a href="/edit-post/{{post.key().id()}}">Edit Post</a>
+    {{error}}
 {% endblock %}
