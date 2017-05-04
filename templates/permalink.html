@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    {% if user.key().id() %}
+    {% if user %}
         {{post.render(user.key().id()) | safe}}
         <br>
         <a href="/edit-post/{{post.key().id()}}">Edit Post</a>
@@ -11,6 +11,5 @@
         <br>
         {{post.body}}
     {% endif %}
-
     {{error}}
 {% endblock %}
