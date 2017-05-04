@@ -292,7 +292,7 @@ class EditPost(Handler):
             self.redirect('/login')
         else:
             error = "You can\'t edit other users\' posts!"
-            self.render("permalink.html", error=error)
+            self.render("permalink.html", post=post, error=error)
 
     def post(self, post_id):
         title = self.request.get("title")
@@ -312,6 +312,27 @@ class EditPost(Handler):
                         body=body, error=error)
 
 
+class DeletePost(Handler):
+    def get(self, post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+
+        cookie = self.request.cookies.get("user_id")
+        val = check_secure_val(cookie)
+        u = User.by_id(int(val))
+
+        if post.author == u.name:
+            post.delete()
+            self.redirect('/')
+
+        elif u.name:
+            error = "You can\'t delete other users\' posts!"
+            self.render("permalink.html", post=post, error=error)
+        else:
+            error = "You must be logged in to delete posts."
+            self.render("permalink.html", post=post, error=error)
+
+
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/login', LoginPage),
@@ -321,4 +342,5 @@ app = webapp2.WSGIApplication([
     ('/new-post', NewPost),
     ('/([0-9]+)', PostPage),
     ('/edit-post/([0-9]+)', EditPost),
+    ('/delete/([0-9]+)', DeletePost),
 ], debug=True)

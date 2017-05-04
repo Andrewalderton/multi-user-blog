@@ -1,8 +1,16 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    {{post.render(user.key().id()) | safe}}
-    <br>
-    <a href="/edit-post/{{post.key().id()}}">Edit Post</a>
+    {% if user.key().id() %}
+        {{post.render(user.key().id()) | safe}}
+        <br>
+        <a href="/edit-post/{{post.key().id()}}">Edit Post</a>
+        <a href="/delete/{{post.key().id()}}">Delete Post</a>
+    {% else %}
+        {{post.title}}
+        <br>
+        {{post.body}}
+    {% endif %}
+
     {{error}}
 {% endblock %}
