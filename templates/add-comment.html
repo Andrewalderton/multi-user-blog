@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="featured-section">Add Comment</h2>
+        <form method="POST">
+            <div class="form-group">
+                <label for="comment">Comment</label>
+                <textarea rows="15" cols="50" class="form-control" name="comment" value="{{comment}}" placeholder="Enter your comment here."></textarea>
+                <div class="error">{{error}}</div>
+            </div>
+            <button class="btn btn-primary" type="submit">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

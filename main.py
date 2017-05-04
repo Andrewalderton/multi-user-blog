@@ -207,7 +207,7 @@ class Post(db.Model):
     last_modified = db.DateTimeProperty(auto_now=True)
     author = db.StringProperty()
 
-    def render(self, current_user_id):
+    def render(self, user_id):
         self._render_text = self.body.replace('\n', '<br>')
         return render_str("post.html", post=self)
 
@@ -237,12 +237,14 @@ class PostPage(Handler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
+        comments = db.GqlQuery(
+            "select * from Comment where ancestor is :1 order by created desc limit 10", key)
 
         if not post:
             self.error(404)
             return
 
-        self.render("permalink.html", post=post)
+        self.render("permalink.html", post=post, comments=comments)
 
 
 class MainPage(Handler):
@@ -333,6 +335,37 @@ class DeletePost(Handler):
             self.render("permalink.html", post=post, error=error)
 
 
+class Comment(db.Model):
+    comment = db.TextProperty(required=True)
+    created = db.DateTimeProperty(auto_now_add=True)
+    last_modified = db.DateTimeProperty(auto_now=True)
+    user_name = db.TextProperty(required=True)
+
+
+class AddComment(Handler):
+    def get(self, post_id):
+        self.render("add-comment.html")
+
+    def post(self, post_id):
+        comment = self.request.get("comment")
+
+        cookie = self.request.cookies.get("user_id")
+        val = check_secure_val(cookie)
+        u = User.by_id(int(val))
+
+        if comment and u:
+            key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post = db.get(key)
+            user_name = str(u.name)
+            c = Comment(parent=key, comment=comment,
+                        user_name=user_name)
+            c.put()
+            self.redirect('/%s' % str(post.key().id()))
+        else:
+            error = "Please add a comment."
+            self.render("add-comment.html", comments=comment, error=error)
+
+
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/login', LoginPage),
@@ -343,4 +376,5 @@ app = webapp2.WSGIApplication([
     ('/([0-9]+)', PostPage),
     ('/edit-post/([0-9]+)', EditPost),
     ('/delete/([0-9]+)', DeletePost),
+    ('/([0-9]+)/add-comment', AddComment),
 ], debug=True)

@@ -3,13 +3,34 @@
 {% block content %}
     {% if user %}
         {{post.render(user.key().id()) | safe}}
-        <br>
-        <a href="/edit-post/{{post.key().id()}}">Edit Post</a>
-        <a href="/delete/{{post.key().id()}}">Delete Post</a>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="edit-butons">
+                        <a href="/edit-post/{{post.key().id()}}">Edit Post</a>
+                        <a href="/delete/{{post.key().id()}}">Delete Post</a>
+                        <a href="/{{post.key().id()}}/add-comment">Add Coment</a>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h3>Comments</h3>
+                    <div class="comment">
+                    {% for c in comments %}
+                        <h3><em>{{c.user_name}}</em></h3>
+                        <p>{{c.comment}}</p>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
     {% else %}
         {{post.title}}
         <br>
         {{post.body}}
+        <br>
+        {{post.comments}}
     {% endif %}
     {{error}}
 {% endblock %}
