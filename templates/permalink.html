@@ -6,10 +6,12 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
+                    {{error}}
                     <div class="edit-butons">
                         <a href="/edit-post/{{post.key().id()}}">Edit Post</a>
                         <a href="/delete/{{post.key().id()}}">Delete Post</a>
-                        <a href="/{{post.key().id()}}/add-comment">Add Coment</a>
+                        <a href="/{{post.key().id()}}/add-comment">Add Comment</a>
+                        <a href="/{{post.key().id()}}/like-post">Like</a>
                     </div>
                 </div>
             </div>
@@ -20,6 +22,7 @@
                     {% for c in comments %}
                         <h3><em>{{c.user_name}}</em></h3>
                         <p>{{c.comment}}</p>
+                        <a href="/{{post.key().id()}}/edit-comment/{{c.user_id}}/{{ c.key().id() }}">Edit Comment</a><br>
                     {% endfor %}
                     </div>
                 </div>
@@ -30,7 +33,15 @@
         <br>
         {{post.body}}
         <br>
-        {{post.comments}}
+        <div class="comment">
+        {% for c in comments %}
+            <h3><em>{{c.user_name}}</em></h3>
+            <p>{{c.comment}}</p>
+        {% endfor %}
+        </div>
+        <br>
+        {{post.likes_total}}
+        <br>
+        {{error}}
     {% endif %}
-    {{error}}
 {% endblock %}

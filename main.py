@@ -125,8 +125,8 @@ class User(db.Model):
     def register(cls, name, pw):
         pw_hash = make_pw_hash(name, pw)
         return cls(parent=users_key(),
-                    name=name,
-                    pw_hash=pw_hash)
+                   name=name,
+                   pw_hash=pw_hash)
 
     @classmethod
     def login(cls, username, password):
@@ -205,11 +205,15 @@ class Post(db.Model):
     body = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
     last_modified = db.DateTimeProperty(auto_now=True)
-    author = db.StringProperty()
+    author = db.StringProperty(required=True)
+    likes_total = db.IntegerProperty(required=True)
 
     def render(self, user_id):
+        key = db.Key.from_path('User', int(user_id), parent=users_key())
+        user = db.get(key)
+
         self._render_text = self.body.replace('\n', '<br>')
-        return render_str("post.html", post=self)
+        return render_str("post.html", post=self, user=user)
 
 
 class NewPost(Handler):
@@ -225,9 +229,9 @@ class NewPost(Handler):
         author = str(u.name)
 
         if title and body:
-            post = Post(parent=blog_key(), title=title, body=body, author=author)
+            post = Post(parent=blog_key(), title=title, body=body, author=author, likes_total=0)
             post.put()
-            self.redirect('/%s' % str(post.key().id()))
+            self.redirect('/blog/%s' % str(post.key().id()))
         else:
             error = "Title and content, please!"
             self.render("new-post.html", title=title, body=body, error=error)
@@ -237,8 +241,8 @@ class PostPage(Handler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-        comments = db.GqlQuery(
-            "select * from Comment where ancestor is :1 order by created desc limit 10", key)
+
+        comments = Comment.all().ancestor(key).order('-created')
 
         if not post:
             self.error(404)
@@ -307,7 +311,7 @@ class EditPost(Handler):
             post.title = title
             post.body = body
             post.put()
-            self.redirect('/%s' % str(post.key().id()))
+            self.redirect('/blog/%s' % str(post.key().id()))
         else:
             error = "Title and Content both required to update."
             self.render("edit-post.html", title=title,
@@ -336,10 +340,12 @@ class DeletePost(Handler):
 
 
 class Comment(db.Model):
+    post = db.ReferenceProperty(Post, collection_name='comments')
     comment = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
     last_modified = db.DateTimeProperty(auto_now=True)
     user_name = db.TextProperty(required=True)
+    user_id = db.IntegerProperty(required=True)
 
 
 class AddComment(Handler):
@@ -358,12 +364,105 @@ class AddComment(Handler):
             post = db.get(key)
             user_name = str(u.name)
             c = Comment(parent=key, comment=comment,
-                        user_name=user_name)
+                        user_name=user_name, user_id=int(val))
             c.put()
-            self.redirect('/%s' % str(post.key().id()))
+            self.redirect('/blog/%s' % str(post.key().id()))
         else:
             error = "Please add a comment."
             self.render("add-comment.html", comments=comment, error=error)
+
+
+class EditComment(Handler):
+    def get(self, post_id, user_id, comment_id):
+        if self.user and self.user.key().id() == int(user_id):
+            post_key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            key = db.Key.from_path('Comment', int(comment_id), parent=post_key)
+            comment = db.get(key)
+
+            self.render('edit-comment.html', comment=comment.comment)
+
+        elif not self.user:
+            self.redirect('/login')
+
+        else:
+            self.write("You can't edit other users' comments!")
+
+    def post(self, post_id, user_id, comment_id):
+        if self.user and self.user.key().id() == int(user_id):
+            new_comment = self.request.get("comment")
+            post_key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            key = db.Key.from_path('Comment', int(comment_id), parent=post_key)
+            comment = db.get(key)
+
+            comment.comment = new_comment
+            comment.put()
+            self.redirect('/blog/%s' % str(post_id))
+
+        else:
+            self.write("You can't edit other users' comments!")
+
+
+class Likes(db.Model):
+    like = db.ReferenceProperty(Post, collection_name='likes')
+    user_id = db.IntegerProperty(required=True)
+    post_id = db.IntegerProperty(required=True)
+    created = db.DateTimeProperty(auto_now_add=True)
+    last_modified = db.DateTimeProperty(auto_now=True)
+
+
+class LikePost(Handler):
+    def get(self, post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+
+        if self.user and self.user.key().id() == post_id:
+            error = "You can't like your own post."
+            self.render("permalink.html", post=post, error=error)
+
+        elif not self.user:
+            self.redirect('/login')
+
+        else:
+            likes = Likes.all().ancestor(key).get()
+
+            if likes:
+                self.redirect('/blog/' + str(post.key().id()))
+            else:
+                likes = Likes(parent=key,
+                              user_id=self.user.key().id(),
+                              post_id=post.key().id())
+
+                post.likes_total += 1
+
+                likes.put()
+                post.put()
+
+                self.redirect('/blog/' + str(post.key().id()))
+
+
+class UnlikePost(Handler):
+    def get(self, post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        post = db.get(key)
+
+        if self.user and self.user.key().id() == post.user_id:
+            error = "You can't unlike your own post."
+            self.render("permalink.html", post=post, error=error)
+
+        elif not self.user:
+            self.redirect('/login')
+
+        else:
+            likes = Likes.all().ancestor(key).get()
+
+            if likes:
+                likes.delete()
+                post.likes_total -= 1
+                post.put()
+
+                self.redirect('/blog/' + str(post.key().id()))
+            else:
+                self.redirect('/blog/' + str(post.key().id()))
 
 
 app = webapp2.WSGIApplication([
@@ -373,8 +472,11 @@ app = webapp2.WSGIApplication([
     ('/sign-up', SignUp),
     ('/welcome', Welcome),
     ('/new-post', NewPost),
-    ('/([0-9]+)', PostPage),
+    ('/blog/([0-9]+)', PostPage),
     ('/edit-post/([0-9]+)', EditPost),
     ('/delete/([0-9]+)', DeletePost),
     ('/([0-9]+)/add-comment', AddComment),
+    ('/([0-9]+)/edit-comment/([0-9]+)/([0-9]+)', EditComment),
+    ('/([0-9]+)/like-post', LikePost),
+    ('/([0-9]+)/unlike-post', UnlikePost)
 ], debug=True)
