@@ -64,22 +64,24 @@ def valid_password(password):
 def make_pw_hash(name, password, salt=None):
     if not salt:
         salt = make_salt()
-        h = hashlib.sha256(name + password + salt).hexdigest()
-        return '%s,%s' % (salt, h)
+    h = hashlib.sha256(name + password + salt).hexdigest()
+    return '%s,%s' % (salt, h)
 
 def make_salt(length=5):
     return ''.join(random.choice(letters) for x in xrange(length))
 
 def valid_pw(name, password, h):
     salt = h.split(',')[0]
-    return h == make_pw_hash(name, password, salt)
+    u = make_pw_hash(name, password, salt)
+    return hmac.compare_digest(str(h), str(u))
 
 def make_secure_val(val):
     return '%s|%s' % (val, hmac.new(secret, val).hexdigest())
 
 def check_secure_val(secure_val):
     val = secure_val.split('|')[0]
-    if secure_val == make_secure_val(val):
+    make_val = make_secure_val(val)
+    if hmac.compare_digest(secure_val, make_val):
         return val
 
 
@@ -124,23 +126,23 @@ class User(db.Model):
     @classmethod
     def register(cls, name, pw):
         pw_hash = make_pw_hash(name, pw)
-        return cls(parent=users_key(),
+        return User(parent=users_key(),
                    name=name,
                    pw_hash=pw_hash)
 
     @classmethod
     def login(cls, username, password):
-        u = cls.by_name(username)
+        u = User.by_name(username)
         if u and valid_pw(username, password, u.pw_hash):
             return u
 
     @classmethod
     def by_id(cls, uid):
-        return cls.get_by_id(uid, parent=users_key())
+        return User.get_by_id(uid, parent=users_key())
 
     @classmethod
     def by_name(cls, name):
-        u = cls.all().filter('name =', name).get()
+        u = User.all().filter("name =", name).get()
         return u
 
 
@@ -178,7 +180,7 @@ class SignUp(Handler):
         # Make sure the user doesn't already exist
         u = User.by_name(self.username)
         if u:
-            msg = 'That user already exists.'
+            msg = "That user already exists."
             self.render("sign-up.html", error_username=msg)
         else:
             u = User.register(self.username, self.password)
@@ -190,12 +192,8 @@ class SignUp(Handler):
 # Welcome page displayed after SignUp success
 class Welcome(Handler):
     def get(self):
-        cookie = self.request.cookies.get("user_id")
-        val = check_secure_val(cookie)
-        u = User.by_id(int(val))
-
-        if u:
-            self.render('welcome.html', username = u.name)
+        if self.user:
+            self.render('welcome.html', username=self.user.name)
         else:
             self.redirect('/sign-up')
 
@@ -218,15 +216,15 @@ class Post(db.Model):
 
 class NewPost(Handler):
     def get(self):
-        self.render("new-post.html")
+        if not self.user:
+            self.redirect('/login')
+        else:
+            self.render("new-post.html")
 
     def post(self):
         title = self.request.get("title")
         body = self.request.get("body")
-        cookie = self.request.cookies.get("user_id")
-        val = check_secure_val(cookie)
-        u = User.by_id(int(val))
-        author = str(u.name)
+        author = self.user.name
 
         if title and body:
             post = Post(parent=blog_key(), title=title, body=body, author=author, likes_total=0)
@@ -262,14 +260,15 @@ class LoginPage(Handler):
         self.render("login.html")
 
     def post(self):
-        username = self.request.get('username')
-        password = self.request.get('password')
+        username = self.request.get("username")
+        password = self.request.get("password")
 
-        u = User.by_name(str(username))
+        u = User.login(username, password)
 
         if u:
             self.login(u)
             self.redirect('/')
+
         else:
             msg = 'Invalid login'
             self.render('login.html', error=msg)
@@ -286,14 +285,9 @@ class EditPost(Handler):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
 
-        cookie = self.request.cookies.get("user_id")
-        val = check_secure_val(cookie)
-        u = User.by_id(int(val))
-
-        if post.author == u.name:
+        if self.user and self.user.name == post.author:
             self.render('edit-post.html', title=post.title,
-                        body=post.body, author=post.author)
-
+                        body=post.body, author=post.author, post_id=post_id)
         elif not self.user:
             self.redirect('/login')
         else:
