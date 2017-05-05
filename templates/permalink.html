@@ -6,12 +6,13 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    {{error}}
+                    <div class="error">{{error}}</div>
                     <div class="edit-butons">
-                        <a href="/edit-post/{{post.key().id()}}">Edit Post</a>
-                        <a href="/delete/{{post.key().id()}}">Delete Post</a>
-                        <a href="/{{post.key().id()}}/add-comment">Add Comment</a>
-                        <a href="/{{post.key().id()}}/like-post">Like</a>
+                        <br>
+                        <a href="/edit-post/{{post.key().id()}}" class="btn">Edit Post</a>
+                        <a href="/delete/{{post.key().id()}}" class="btn">Delete Post</a>
+                        <a href="/{{post.key().id()}}/add-comment" class="btn">Add Comment</a>
+                        <a href="/{{post.key().id()}}/like-post" class="btn">Like</a>
                     </div>
                 </div>
             </div>
@@ -29,10 +30,13 @@
             </div>
         </div>
     {% else %}
-        {{post.title}}
+        <h2 class="featured-section">{{post.title}}</h2>
         <br>
-        {{post.body}}
-        <br>
+        <h2><em>By {{ post.author }}</em></h2>
+        <div class="post-date">
+            {{ post.created.strftime("%b %d, %Y") }}
+        </div>
+            <p>{{post.body}}</p>
         <div class="comment">
         {% for c in comments %}
             <h3><em>{{c.user_name}}</em></h3>
@@ -40,8 +44,8 @@
         {% endfor %}
         </div>
         <br>
-        {{post.likes_total}}
+        <b>Likes: {{post.likes_total}}</b>
         <br>
-        {{error}}
+        <div class="error">{{error}}</div>
     {% endif %}
 {% endblock %}

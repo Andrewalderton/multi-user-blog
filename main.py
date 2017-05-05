@@ -291,7 +291,7 @@ class EditPost(Handler):
         elif not self.user:
             self.redirect('/login')
         else:
-            error = "You can\'t edit other users\' posts!"
+            error = "You can't edit other users' posts!"
             self.render("permalink.html", post=post, error=error)
 
     def post(self, post_id):
@@ -326,11 +326,10 @@ class DeletePost(Handler):
             self.redirect('/')
 
         elif u.name:
-            error = "You can\'t delete other users\' posts!"
+            error = "You can't delete other users' posts!"
             self.render("permalink.html", post=post, error=error)
         else:
-            error = "You must be logged in to delete posts."
-            self.render("permalink.html", post=post, error=error)
+            self.redirect('/login')
 
 
 class Comment(db.Model):
@@ -344,6 +343,9 @@ class Comment(db.Model):
 
 class AddComment(Handler):
     def get(self, post_id):
+        if not self.user:
+            self.redirect('/login')
+
         self.render("add-comment.html")
 
     def post(self, post_id):
@@ -377,13 +379,13 @@ class EditComment(Handler):
 
         elif not self.user:
             self.redirect('/login')
-
         else:
             self.write("You can't edit other users' comments!")
 
     def post(self, post_id, user_id, comment_id):
         if self.user and self.user.key().id() == int(user_id):
             new_comment = self.request.get("comment")
+
             post_key = db.Key.from_path('Post', int(post_id), parent=blog_key())
             key = db.Key.from_path('Comment', int(comment_id), parent=post_key)
             comment = db.get(key)
@@ -409,7 +411,7 @@ class LikePost(Handler):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
 
-        if self.user and self.user.key().id() == post_id:
+        if self.user and self.user.name == post.author:
             error = "You can't like your own post."
             self.render("permalink.html", post=post, error=error)
 
@@ -417,7 +419,8 @@ class LikePost(Handler):
             self.redirect('/login')
 
         else:
-            likes = Likes.all().ancestor(key).get()
+            user_id = self.user.key().id()
+            likes = Likes.all().filter('user_id =', user_id).ancestor(key).get()
 
             if likes:
                 self.redirect('/blog/' + str(post.key().id()))
@@ -427,7 +430,6 @@ class LikePost(Handler):
                               post_id=post.key().id())
 
                 post.likes_total += 1
-
                 likes.put()
                 post.put()
 

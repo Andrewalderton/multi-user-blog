@@ -4,12 +4,17 @@
 <div class="row">
     <div class="col-md-12">
         <h2 class="featured-section">{{ post.title }}</h2>
+        <div class="author">
+            <h2><em>By {{ post.author }}</em></h2>
+            <br>
+        </div>
         <div class="post-date">
-            {{ post.created.strftime("%b %d, %Y") }}<br>
-            {{ post.likes_total }}
-            <a href="/{{post.key().id()}}/like"></a>
+            {{ post.created.strftime("%b %d, %Y") }}
+            <br>
+            <b>Likes: {{ post.likes_total }}</b>
         </div>
         <div class=post-content>
+            <br>
             {{ post._render_text | safe }}
         </div>
     </div>
