@@ -441,7 +441,7 @@ class UnlikePost(Handler):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
 
-        if self.user and self.user.key().id() == post.user_id:
+        if self.user and self.user.name == post.author:
             error = "You can't unlike your own post."
             self.render("permalink.html", post=post, error=error)
 
@@ -449,7 +449,8 @@ class UnlikePost(Handler):
             self.redirect('/login')
 
         else:
-            likes = Likes.all().ancestor(key).get()
+            user_id = self.user.key().id()
+            likes = Likes.all().filter('user_id =', user_id).ancestor(key).get()
 
             if likes:
                 likes.delete()
