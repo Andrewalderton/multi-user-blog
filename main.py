@@ -38,6 +38,7 @@ def render_str(template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
 
+
 # Model keys
 def users_key(group='default'):
     return db.Key.from_path('users', group)
@@ -67,16 +68,20 @@ def make_pw_hash(name, password, salt=None):
     h = hashlib.sha256(name + password + salt).hexdigest()
     return '%s,%s' % (salt, h)
 
+
 def make_salt(length=5):
     return ''.join(random.choice(letters) for x in xrange(length))
+
 
 def valid_pw(name, password, h):
     salt = h.split(',')[0]
     u = make_pw_hash(name, password, salt)
     return hmac.compare_digest(str(h), str(u))
 
+
 def make_secure_val(val):
     return '%s|%s' % (val, hmac.new(secret, val).hexdigest())
+
 
 def check_secure_val(secure_val):
     val = secure_val.split('|')[0]
@@ -127,8 +132,8 @@ class User(db.Model):
     def register(cls, name, pw):
         pw_hash = make_pw_hash(name, pw)
         return User(parent=users_key(),
-                   name=name,
-                   pw_hash=pw_hash)
+                    name=name,
+                    pw_hash=pw_hash)
 
     @classmethod
     def login(cls, username, password):
@@ -227,7 +232,8 @@ class NewPost(Handler):
         author = self.user.name
 
         if title and body:
-            post = Post(parent=blog_key(), title=title, body=body, author=author, likes_total=0)
+            post = Post(parent=blog_key(), title=title, body=body,
+                        author=author, likes_total=0)
             post.put()
             self.redirect('/blog/%s' % str(post.key().id()))
         else:
@@ -371,7 +377,8 @@ class AddComment(Handler):
 class EditComment(Handler):
     def get(self, post_id, user_id, comment_id):
         if self.user and self.user.key().id() == int(user_id):
-            post_key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post_key = db.Key.from_path('Post', int(post_id),
+                                        parent=blog_key())
             key = db.Key.from_path('Comment', int(comment_id), parent=post_key)
             comment = db.get(key)
 
@@ -386,7 +393,9 @@ class EditComment(Handler):
         if self.user and self.user.key().id() == int(user_id):
             new_comment = self.request.get("comment")
 
-            post_key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+            post_key = db.Key.from_path('Post',
+                                        int(post_id),
+                                        parent=blog_key())
             key = db.Key.from_path('Comment', int(comment_id), parent=post_key)
             comment = db.get(key)
 
@@ -420,7 +429,8 @@ class LikePost(Handler):
 
         else:
             user_id = self.user.key().id()
-            likes = Likes.all().filter('user_id =', user_id).ancestor(key).get()
+            likes = Likes.all().filter('user_id =',
+                                       user_id).ancestor(key).get()
 
             if likes:
                 self.redirect('/blog/' + str(post.key().id()))
@@ -450,7 +460,8 @@ class UnlikePost(Handler):
 
         else:
             user_id = self.user.key().id()
-            likes = Likes.all().filter('user_id =', user_id).ancestor(key).get()
+            likes = Likes.all().filter('user_id =',
+                                       user_id).ancestor(key).get()
 
             if likes:
                 likes.delete()
